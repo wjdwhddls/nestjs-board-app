@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, Patch, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, Patch, Put, UsePipes, ValidationPipe } from '@nestjs/common';
 import { BoardsService } from './boards.service';
 import { Board } from './boards.entity';
 import { CreateBoardDto } from './dto/create-board.dto';
@@ -30,6 +30,7 @@ export class BoardsController {
 
     // 게시글 작성 기능
     @Post('/')
+    @UsePipes(ValidationPipe)
     createBoard(
         @Body() createboardDto: CreateBoardDto) {
         return this.boardsService.createBoard(createboardDto);
