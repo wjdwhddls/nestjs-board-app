@@ -63,11 +63,11 @@ export class BoardsService {
     // 게시글 삭제 기능  
     deleteBoardById(id: number): void {  
         // 게시글이 존재하는지 확인  
-        const boardExists = this.boards.some((board) => board.id === id);  
+        const boardExists = this.boards.find((board) => board.id == id);  
         if (!boardExists) {  
             throw new NotFoundException(`Board with ID ${id} not found`);  
         }   
-        this.boards = this.boards.filter((board) => board.id !== id);  
+        this.boards = this.boards.filter((board) => board.id != id);  
     } 
 
     // 특정 번호의 게시글 일부 수정  
