@@ -63,8 +63,8 @@ export class BoardsService {
             status: BoardStatus.PUBLIC
         }
 
-        const createBoard = await this.boardRepository.saveBoard(board);
-        return createBoard;
+        const message = await this.boardRepository.saveBoard(board);
+        return message;
     } 
 
 //     // 게시글 삭제 기능  
