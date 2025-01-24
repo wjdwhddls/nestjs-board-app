@@ -6,4 +6,5 @@ export class Board {
     title: string;
     contents: string;
     status: BoardStatus;
+    // password: string;
 }
