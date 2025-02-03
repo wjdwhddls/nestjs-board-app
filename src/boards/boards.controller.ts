@@ -1,9 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, Patch, Put, UsePipes, ValidationPipe } from '@nestjs/common';
 import { BoardsService } from './boards.service';
 import { Board } from './boards.entity';
-// import { BoardStatus } from './boards-status.enum';
-// import { UpdateBoardDto } from './dto/update-board.dto';
-// import { BoardStatusValidationPipe } from './pipes/board-status-validation.pipe';
 import { BoardResponseDto } from './dto/board-response.dto';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
