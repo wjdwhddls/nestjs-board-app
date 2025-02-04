@@ -4,7 +4,7 @@ import { User } from './users.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserRole } from './users-role.enum';
-
+import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class AuthService {
     constructor(
@@ -22,14 +22,16 @@ export class AuthService {
         }
 
         await this.checkEmailExist(email);
+
+        const hashedPassword = await this.hashPassword(password);
             
         const newUser: User = {
             id: 0, // 임시 초기화
             username, // author : createBoardDto.author
-            password,
+            password: hashedPassword,
             email,
             role: UserRole.USER
-        }
+        };
         const createUser = await this.userRepository.save(newUser);
         return createUser;
     }
@@ -39,6 +41,11 @@ export class AuthService {
         if(existingUser){
             throw new ConflictException(`Email already exists`);
         }
+    }
+
+    async hashPassword(password: string): Promise<string>{
+        const salt = await bcrypt.genSalt(); // 솔트생성
+        return await bcrypt.hash(password, salt);
     }
 }
 
