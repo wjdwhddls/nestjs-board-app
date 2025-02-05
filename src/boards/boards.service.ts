@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Board } from './boards.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -37,11 +37,14 @@ export class BoardsService {
 
     // 특정 게시글 조회기능
     async getBoardDetailById(id: number): Promise<Board>{
-        const foundBoardId = await this.boardRepository.findOneBy({id : id});
-        if(!foundBoardId) {
+        const foundBoard = await this.boardRepository.createQueryBuilder('board')
+            .leftJoinAndSelect('board.user','user')
+            .where('board.id = :id', {id})
+            .getOne();
+        if(!foundBoard) {
             throw new NotFoundException(`Board with ID ${id} not found`);
         }
-        return foundBoardId;
+        return foundBoard;
     }
 
     //키워드(작성자)로 검색한 게시글 조회 기능
@@ -71,13 +74,14 @@ export class BoardsService {
     } 
 
     // 게시글 삭제 기능  
-    async deleteBoardById(id: number): Promise<void> {  
-        // 게시글이 존재하는지 확인  
-        const foundBoard = await this.getBoardDetailById(id);  
-        if (!foundBoard) {  
-            throw new NotFoundException(`Board with ID ${id} not found`);  
-        }   
-        await this.boardRepository.delete(id);  
+    async deleteBoardById(id: number,logginedUser: User): Promise<void> {    
+        const foundBoard = await this.getBoardDetailById(id);   
+        // 작성자와 요청한 사용자가 같은지 확인
+        if(foundBoard.user.id !== logginedUser.id){
+            throw new UnauthorizedException('Do not have permission to delete this board')
+        }
+
+        await this.boardRepository.delete(foundBoard);  
     } 
 
     // 특정 번호의 게시글 일부 수정  
