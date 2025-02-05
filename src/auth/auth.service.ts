@@ -35,7 +35,8 @@ export class AuthService {
             username, // author : createBoardDto.author
             password: hashedPassword,
             email,
-            role: UserRole.USER
+            role: UserRole.USER,
+            boards: []
         };
         const createUser = await this.userRepository.save(newUser);
         return createUser;
