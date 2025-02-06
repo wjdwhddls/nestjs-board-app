@@ -43,6 +43,7 @@ export class UserService {
         return createdUser;
     }
 
+    // Existing checker
     async checkEmailExist(email: string): Promise<void> {
         const existingUser = await this.userRepository.findOne({ where: {email}});
         if(existingUser){
@@ -50,11 +51,13 @@ export class UserService {
         }
     }
 
+    // Hashing password
     async hashPassword(password: string): Promise<string>{
         const salt = await bcrypt.genSalt(); // 솔트생성
         return await bcrypt.hash(password, salt);
     }
     
+    // READ - by email
     async findUserByEmail(email: string): Promise<User> {
         const existingUser = await this.userRepository.findOne({ where: {email}});
         if(!existingUser){
