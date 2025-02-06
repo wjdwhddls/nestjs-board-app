@@ -1,16 +1,19 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException, Res, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, Res, UnauthorizedException } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { User } from './users.entity';
+import { User } from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UserRole } from './users-role.enum';
+import { SignUpRequestDto } from './dto/sign-up-request.dto';
+import { UserRole } from './user-role.enum';
 import * as bcrypt from 'bcryptjs';
-import { LoginUserDto } from './dto/login-user.dto';
+import { SignInRequestDto } from './dto/sign-in-request.dto';
 import { JwtService } from '@nestjs/jwt';
 import { maxLength } from 'class-validator';
 import { Response } from 'express';
+import { AuthController } from './auth.controller';
 @Injectable()
 export class AuthService {
+    private readonly logger = new Logger(AuthService.name);
+    
     constructor(
         @InjectRepository(User)
         private userRepository: Repository<User>,
@@ -18,8 +21,10 @@ export class AuthService {
     ){}
 
     // 회원 가입 기능
-    async createUser(createUserDto: CreateUserDto):Promise<User>{
-        const { username, password, email, role} = createUserDto;
+    async createUser(signupRequestDto: SignUpRequestDto):Promise<User>{
+        this.logger.verbose(`Visitor is creating a new account with title: ${signupRequestDto.email}`);
+
+        const { username, password, email, role} = signupRequestDto;
 
         // // 유효성 검사  
         if (!username || !password || !email || !role) {  
@@ -30,26 +35,29 @@ export class AuthService {
 
         const hashedPassword = await this.hashPassword(password);
             
-        const newUser: User = {
-            id: 0, // 임시 초기화
+        const newUser = this.userRepository.create({
             username, // author : createBoardDto.author
             password: hashedPassword,
             email,
             role: UserRole.USER,
-            boards: []
-        };
-        const createUser = await this.userRepository.save(newUser);
-        return createUser;
+        });
+        const createdUser = await this.userRepository.save(newUser);
+
+        this.logger.verbose(`New account email with ${createdUser.email} created Successfully `);
+        return createdUser;
     }
 
     // 로그인 기능
-    async signIn(loginUserDto : LoginUserDto): Promise<string> {
-        const { email,password } = loginUserDto;
+    async signIn(signinRequestDto : SignInRequestDto): Promise<string> {
+        this.logger.verbose(`User with email: ${signinRequestDto.email} is signing in`);
+
+        const { email,password } = signinRequestDto;
 
         try{
             const existingUser = await this.findUserByEmail(email);
 
             if(!existingUser || !(await bcrypt.compare(password, existingUser.password))){
+                this.logger.error(`Invalid credentials`)
                 throw new UnauthorizedException(`Invalid credentials`);
             }
 
@@ -61,11 +69,14 @@ export class AuthService {
                 role: existingUser.role
             };
             const accessToken = await this.jwtService.sign(payload);
+            this.logger.verbose(`User with email: ${signinRequestDto.email} issued JWT ${accessToken}`);
 
             return accessToken;
         }catch(error){
+            this.logger.error(`Invalid credentials or Internal Server error`)
             throw error;
         }
+
     }
 
     async findUserByEmail(email: string): Promise<User> {
