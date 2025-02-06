@@ -6,7 +6,7 @@ import { ArticleStatus } from './article-status.enum';
 import { CreateArticleRequestDto } from './dto/create-article-request.dto';
 import { ArticleResponseDto } from './dto/article-response.dto';
 import { UpdateArticleRequestDto } from './dto/update-article-request.dto';
-import { User } from 'src/auth/user.entity';
+import { User } from 'src/user/user.entity';
 
 @Injectable() 
 export class ArticlesService {
